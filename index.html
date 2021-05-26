@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Access-Control-Allow-Origin" content="*">
+        <!-- BOOTSTRAP -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.css" />
+    </head>
+    <body style="padding:10px;">
+        <form id="form" id="chat_form">
+            <input id="params_input" type="hidden">
+            <input id="broad_input" value="broadcast" type="hidden">
+            <input id="user_input" placeholder="Digite seu nome" type="text">
+            <input id="chat_input" type="text" placeholder="Digite sua mensagem">
+            <input type="submit" value="Enviar">
+        </form>
+        <script src="/jquery/dist/jquery.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.js"></script>
+
+    </body>
+</html>
+<script>
+var socket = io.connect('https://socket-prod.yeapps.com.br/', {secure: true,    rejectUnauthorized: false});
+
+var acessosAr = [];
+
+socket.on('connect', function(data) {
+	socket.emit('join', 'Hello World from client');
+});
+
+socket.on('site_conectado', function(data) {
+	console.log('['+data.msg+']');
+});
+
+socket.on('acessos', function(data) {
+	$('#ultima_atualizacao').html("<b>Atualização em:</b> "+data.data+"");
+	$('#acessos_tempo_real').html("<tr><td>Empresa</td><td>Total</td><td>Inicial</td><td>Eventos</td><td>Evento</td><td>Cadastro</td><td>Confirmação</td><td>Checkout</td><td>Em Análise</td></tr>");
+	for (var j=0 in data.acessos) {
+		$('#acessos_tempo_real').append("<tr><td>"+
+												 data.acessos[j].empresa+"</td><td>"+
+												 data.acessos[j].qtd+"</td><td>"+
+												 data.acessos[j].qtd_inicial+"</td><td>"+
+												 data.acessos[j].qtd_eventos+"</td><td>"+
+												 data.acessos[j].qtd_evento+"</td><td>"+
+												 data.acessos[j].qtd_cadastro+"</td><td>"+
+												 data.acessos[j].qtd_confirmacao+"</td><td>"+
+												 data.acessos[j].qtd_checkout+"</td><td>"+
+												 data.acessos[j].qtd_analise+"</td>"
+												 +"</tr>");
+	}
+});
+
+socket.on('vendas', function(data) {
+	var cod_voucher_img = "<a data-fancybox=\"gallery\" href=\"https://www.yeapps.com.br/admin/app-webservice/qrcode.php?cod_voucher="+data.cod_voucher+"\"><img style=\"-webkit-user-select: none;height:100px;\" src=\"https://www.yeapps.com.br/admin/app-webservice/qrcode.php?cod_voucher="+data.cod_voucher+"\"></a>";
+	if($.trim(data.nome)=="") {
+		nome_set = data.usuario_ben_nome;
+	} else {
+		nome_set = data.nome;
+	}
+	if($.trim(data.email)=="") {
+		email_set = data.usuario_ben_email;
+	} else {
+		email_set = data.email;
+	}
+    $('#vendas_tempo_real').append("<tr class='"+data.classe_tabela+"'><td>"+
+	                                             data.id+"</td><td>"+
+												 data.cod_voucher+"</td><td>"+
+												 cod_voucher_img+"</td><td>"+
+												 data.eventos_nome+"</td><td>"+
+												 data.ticket_nome+"</td><td>"+
+												 data.lote_lote+"</td><td>"+
+												 nome_set+"</td><td>"+
+												 data.cpf+"</td><td>"+
+												 email_set+"</td><td>"+
+												 data.stat+"</td><td>"+
+												 data.dataPagamento+"</td>"
+												 +"</tr>");
+});
+
+socket.on('validar', function(data) {
+	var cod_voucher_img = "<a data-fancybox=\"gallery\" href=\"https://www.yeapps.com.br/admin/app-webservice/qrcode.php?cod_voucher="+data.cod_voucher+"\"><img style=\"-webkit-user-select: none;height:100px;\" src=\"https://www.yeapps.com.br/admin/app-webservice/qrcode.php?cod_voucher="+data.cod_voucher+"\"></a>";
+    $('#validar_tempo_real').append("<tr><td>"+cod_voucher_img+"</td><td>"+data.cod_voucher+"</td></tr>");
+});
+
+socket.on('estornos', function(data) {
+    $('#estornos_tempo_real').append("<tr class='"+data.classe_tabela+"'><td>"+data.id+"</td><td>"+data.eventos_nome+"</td><td>"+data.ticket_nome+"</td><td>"+data.lote_lote+"</td><td>"+data.nome+"</td><td>"+data.cpf+"</td><td>"+data.email+"</td><td>"+data.stat+"</td></tr>");
+});
+
+socket.on('checkin', function(data) {
+	var cod_voucher_img = "<a data-fancybox=\"gallery\" href=\"https://www.yeapps.com.br/admin/app-webservice/qrcode.php?cod_voucher="+data.cod_voucher+"\"><img style=\"-webkit-user-select: none;height:100px;\" src=\"https://www.yeapps.com.br/admin/app-webservice/qrcode.php?cod_voucher="+data.cod_voucher+"\"></a>";
+    $('#checkin_tempo_real').append("<tr><td>"+cod_voucher_img+"</td><td>"+data.cod_voucher+"</td></tr>");
+});
+
+socket.on('cadeira', function(data) {
+    $('#cadeira_tempo_real').append("<tr><td>"+data.numeroUnico_evento+"</td><td>"+data.numeroUnico_ticket+"</td><td>"+data.linha+"</td><td>"+data.coluna+"</td><td>"+data.status+"</td><td>"+data.numeroUnico_pai+"</td></tr>");
+});
+
+socket.on('rastreamento', function(data) {
+    $('#rastreamento_tempo_real').append("<tr><td>"+data.numeroUnico_pedido+"</td><td>"+data.latitude_entregador+"</td><td>"+data.longitude_entregador+"</td></tr>");
+});
+
+$('form').submit(function(e){
+	e.preventDefault();
+	var userSet = $('#user_input').val();
+	var broadSet = $('#broad_input').val();
+	var messageSet = $('#chat_input').val();
+	var paramsSet = $('#params_input').val();
+	$('#user_input').val("");
+	$('#broad_input').val("broadcast");
+	$('#chat_input').val("");
+	socket.emit('messages', {
+	  broad: broadSet,
+	  user: userSet,
+	  msg: messageSet,
+	  params: paramsSet
+	});
+});
+</script>
